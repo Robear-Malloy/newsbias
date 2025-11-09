@@ -1,6 +1,8 @@
 from typing import Dict, Any, List
 import os, json, re
 from pathlib import Path
+from .explain_shap import explain_with_shap_spans
+
 
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -87,7 +89,7 @@ def _spans(text: str, k: int = 6) -> List[Dict[str, Any]]:
     return out[:k]
 
 @torch.no_grad()
-def classify(text: str) -> Dict[str, Any]:
+def classify(text: str, use_shap: bool = False) -> Dict[str, Any]:
     # Empty/short guard
     if not text or not text.strip():
         base_probs = {"Left": 0.33, "Center": 0.34, "Right": 0.33}
@@ -127,8 +129,33 @@ def classify(text: str) -> Dict[str, Any]:
     # full distribution by label
     probs_by_label = {id2label[i]: float(probs_list[i]) for i in range(len(probs_list))}
 
-    # keyword spans 
-    spans = _spans(text)
+    # keyword spans with shap
+    if use_shap:
+        try:
+            from .explain_shap import explain_with_shap_spans
+            spans = explain_with_shap_spans(
+                text=text,
+                tokenizer=tokenizer,
+                model=model,
+                device=DEVICE,
+                target_idx=int(idx),
+                k=6,
+                max_length=512,
+                merge=True,
+            )
+        except Exception as e:
+            print(f"[WARN] SHAP explanation failed: {e}")
+            spans = []
+    else:
+        # Generate regex spans but *only* include basic fields
+        spans = []
+        for s in _spans(text, k=6):
+            spans.append({
+                "text": s["text"],
+                "start": s["start"],
+                "end": s["end"],
+                # omit all SHAP-related fields
+            })
 
     return {
         "label": label,
