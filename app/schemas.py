@@ -5,6 +5,7 @@ from typing import List, Optional, Dict
 class PredictRequest(BaseModel):
     title: Optional[str] = None
     text: str
+    useShap: Optional[bool] = False
 
 # model’s prediction about bias
 class BiasOut(BaseModel):
@@ -17,6 +18,9 @@ class RationaleSpan(BaseModel):
     start: int
     end: int
     text: str
+    score: Optional[float] = None     
+    value: Optional[float] = None      
+    sign: Optional[int] = None         
 
 # container for all spans to highlight
 class ExplainOut(BaseModel):

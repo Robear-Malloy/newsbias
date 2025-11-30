@@ -149,6 +149,39 @@ async def predict_url(url: str = Body(..., embed=True)):
         source_prior=prior,
     )
 
+@app.post("/predict_url_shap", response_model=PredictResponse)
+async def predict_url_shap(url: str = Body(..., embed=True)):
+    art = await extract_article(url)    # {'url','source','title','text'}
+    text = (art.get("text") or "")[:8000]
+    if len(text) < 20:
+        raise HTTPException(status_code=400, detail="Extracted text too short.")
+
+    summ = summarize(text).get("text", "")
+    full_text = ((art.get("title") or "").strip() + "\n\n" + text).strip()
+    res = classify(full_text, True)
+    spans = [RationaleSpan(**s) for s in res.get("rationale_spans", [])]
+    # source-level prior from AllSides mapping
+    prior = None
+    if get_prior_for_source:
+        # extractor returns domain like "cnn.com"; priors may be keyed by outlet name
+        # try domain first, then strip www., then title-based guess
+        key = (art.get("source") or "").lower()  # e.g., "cnn.com"
+        try:
+            prior = get_prior_for_source(key)  # implement domain to prior mapping in priors.py
+        except Exception:
+            prior = None
+
+    return PredictResponse(
+        summary=summ,
+        bias=BiasOut(
+            label=res["label"],
+            confidence=float(res["confidence"]),
+            probs={k: round(v, 3) for k, v in (res.get("probs") or {}).items()}
+        ),
+        explain=ExplainOut(spans=spans),
+        source_prior=prior,
+    )
+
 @app.post("/batch_predict", response_model=List[PredictResponse])
 def batch_predict(items: List[PredictRequest] = Body(...)):
     outputs: List[PredictResponse] = []

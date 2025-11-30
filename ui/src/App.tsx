@@ -71,6 +71,25 @@ export default function App() {
       setLoading(false);
     }
   };
+  
+  const classifyUrlShap = async () => {
+  setErr("");
+  setLoading(true);
+  setResult(null);
+  try {
+    const res = await fetch(`${API}/predict_url_shap`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    setResult(await res.json());
+  } catch (e) {
+    setErr(String(e));
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="page">
@@ -109,6 +128,10 @@ export default function App() {
             <button className="btn btn-primary" onClick={classifyUrl} disabled={loading}>
               {loading ? <span className="spinner" aria-hidden /> : null}
               {loading ? "Classifying..." : "Classify"}
+            </button>
+            <button className="btn btn-primary" onClick={classifyUrlShap} disabled={loading}>
+              {loading ? <span className="spinner" aria-hidden /> : null}
+              {loading ? "Classifying w/ SHAP..." : "Classify w/ SHAP"}
             </button>
           </div>
 
