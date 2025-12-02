@@ -91,6 +91,25 @@ export default function App() {
     }
   };
 
+  const classifyUrlLime = async () => {
+    setErr("");
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch(`${API}/predict_url_lime`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setResult(await res.json());
+    } catch (e) {
+      setErr(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page">
       <header className="header">
@@ -132,6 +151,10 @@ export default function App() {
             <button className="btn btn-primary" onClick={classifyUrlShap} disabled={loading}>
               {loading ? <span className="spinner" aria-hidden /> : null}
               {loading ? "Classifying w/ SHAP..." : "Classify w/ SHAP"}
+            </button>
+            <button className="btn btn-primary" onClick={classifyUrlLime} disabled={loading}>
+              {loading ? <span className="spinner" aria-hidden /> : null}
+              {loading ? "Classifying w/ Lime..." : "Classify w/ Lime"}
             </button>
           </div>
 

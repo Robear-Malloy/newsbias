@@ -89,8 +89,16 @@ def _spans(text: str, k: int = 6) -> List[Dict[str, Any]]:
     return out[:k]
 
 @torch.no_grad()
-def classify(text: str, use_shap: bool = False) -> Dict[str, Any]:
-    # Empty/short guard
+def classify(
+    text: str,
+    use_shap: bool = False,       # keep for backward compatibility
+    explain: str | None = None,   # "shap", "lime", or None
+) -> Dict[str, Any]:
+
+    # normalize old flag into new param
+    if explain is None and use_shap:
+        explain = "shap"
+
     if not text or not text.strip():
         base_probs = {"Left": 0.33, "Center": 0.34, "Right": 0.33}
         return {
@@ -100,37 +108,32 @@ def classify(text: str, use_shap: bool = False) -> Dict[str, Any]:
             "rationale_spans": [],
         }
 
-    # encode
     enc = tokenizer(text, truncation=True, max_length=512, return_tensors="pt")
     enc = {k: v.to(DEVICE) for k, v in enc.items()}
 
-    # forward
-    logits = model(**enc).logits.squeeze(0)  
+    logits = model(**enc).logits.squeeze(0)
 
-    # temperature scaling
     z = logits / T
     z = z - z.max()
 
-    # probabilities
-    probs_tensor = torch.softmax(z, dim=-1)     
+    probs_tensor = torch.softmax(z, dim=-1)
     probs_list = probs_tensor.detach().cpu().tolist()
 
-    # id2label mapping 
     cfg_id2label = getattr(model.config, "id2label", None)
     if cfg_id2label:
         id2label = {int(k): str(v) for k, v in cfg_id2label.items()}
     else:
         id2label = {0: "Left", 1: "Center", 2: "Right"}
 
-    # predicted label + confidence
     conf, idx = torch.max(probs_tensor, dim=-1)
-    label = id2label.get(int(idx), ["Left", "Center", "Right"][int(idx)])
+    label = id2label.get(int(idx), LABELS[int(idx)])
 
-    # full distribution by label
     probs_by_label = {id2label[i]: float(probs_list[i]) for i in range(len(probs_list))}
 
-    # keyword spans with shap
-    if use_shap:
+    # --- Explanation selection ---
+    spans: List[Dict[str, Any]] = []
+
+    if explain == "shap":
         try:
             from .explain_shap import explain_with_shap_spans
             spans = explain_with_shap_spans(
@@ -146,15 +149,30 @@ def classify(text: str, use_shap: bool = False) -> Dict[str, Any]:
         except Exception as e:
             print(f"[WARN] SHAP explanation failed: {e}")
             spans = []
+
+    elif explain == "lime":
+        try:
+            from .explain_lime import explain_with_lime_spans
+            spans = explain_with_lime_spans(
+                text=text,
+                tokenizer=tokenizer,
+                model=model,
+                device=DEVICE,
+                target_idx=int(idx),
+                k=6,
+                max_length=512,
+            )
+        except Exception as e:
+            print(f"[WARN] LIME explanation failed: {e}")
+            spans = []
+
     else:
-        # Generate regex spans but *only* include basic fields
-        spans = []
+        # no model-based explanation: just regex spans (or [] if you prefer)
         for s in _spans(text, k=6):
             spans.append({
                 "text": s["text"],
                 "start": s["start"],
                 "end": s["end"],
-                # omit all SHAP-related fields
             })
 
     return {
@@ -163,4 +181,5 @@ def classify(text: str, use_shap: bool = False) -> Dict[str, Any]:
         "probs": probs_by_label,
         "rationale_spans": spans,
     }
+
 
