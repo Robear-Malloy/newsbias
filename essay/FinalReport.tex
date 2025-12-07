@@ -1,21 +1,20 @@
 \documentclass{article}
 
 \usepackage[preprint]{neurips_2025}
-\usepackage[utf8]{inputenc} % allow utf-8 input
-\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage{hyperref}       % hyperlinks
-\usepackage{url}            % simple URL typesetting
-\usepackage{booktabs}       % professional-quality tables
-\usepackage{amsfonts}       % blackboard math symbols
-\usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
-\usepackage{xcolor}         % colors
-\usepackage{graphicx} % Add Images
-
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
 
 \title{Breaking News: An LLM Agent to Detect Bias in News}
 
-\author{%
+\author{
   Daniel Leniz\\
   Department of Computer Science\\
   University of South Florida\\
@@ -35,103 +34,141 @@
   \texttt{rmalloy1@usf.edu} \\
 }
 
-
 \begin{document}
-
 
 \maketitle
 
-
 \begin{abstract}
-  The abstract paragraph should be indented \nicefrac{1}{2}~inch (3~picas) on
-  both the left- and right-hand margins. Use 10~point type, with a vertical
-  spacing (leading) of 11~points.  The word \textbf{Abstract} must be centered,
-  bold, and in point size 12. Two line spaces precede the abstract. The abstract
-  must be limited to one paragraph.
+Detecting bias in news articles is becoming more important as the amount of news coverage that exists, and the political divides in this country continue to increase. Manually reading through various articles on the same topic to determine what the full story is and if a specific article is biased towards one side takes a lot of time and effort. It’s also easy for internal biases to impact those conclusions. Given the scope of articles, a user would have to check especially with ongoing stories, and it becomes easy for a user to stop checking other viewpoints once they find a station that they agree with. To help with this issue, we’ve decided to develop an LLM (Large Language Model) that will determine what the political leaning of an article is and provide a summary of what information is contained in the article. Providing a faster way to check what the different viewpoints on a topic are before picking one to read for more in-depth coverage.
 \end{abstract}
-
 
 \section{Introduction}
 
-This section is the introduction.
-
+With the spread of technology and increasing ease of communication, it has become easier to both distribute and obtain access to the latest news. Allowing you to stay informed and aware of what is happening around you and the world. For news providers though this also means more competition, as a result outlets rely more heavily on excitatory words to draw attention and engagement to their business and biased reports on events to lean into their base. As a result, it becomes increasingly difficult to understand an event holistically as the full story is split between various competing viewpoints across various news stations. So, we want to provide a tool that will detect the bias found in news articles to give users a better way to determine if an article is trying to nudge them towards a specific conclusion.
 
 \subsection{Our Problem}
 
-We would like to have an ai summarize and detect bias in news articles
-
+With restrictions on time and interest, people can’t read multiple articles from multiple news sources and slowly piece together the full story based on the different views held in those articles. And trusting that all articles from a news agency are unbiased or relatively neutral because some are, causes gaps as an agency’s biases can change based on the topic. So, we wanted something that would provide a quick way to verify whether an article is biased, providing the user with information they can use to better choose which articles contain the most comprehensive coverage of a topic.
 
 \subsection{Our Approach}
 
-We are going to develop an LLM agent to do this.
+We’ve decided that the best way to provide users with a tool that will help them filter out biased articles is by creating an LLM agent that will rate articles on a sliding scale from left to right. Our agent will analyze the article for biases found in the work and use shap to explain how certain words weighed towards the determination on whether an article is left/center/right leaning, this information will then be provided to the user alongside a summary of the article. By providing this information we can give a user a sense of how the article leans politically while also providing the reasoning behind the llm’s decision, so they don’t just have to trust the llm is working as intended, they can judge that for themselves.
 
+\section{Related Work}
 
-\section {Related Work}
+\subsection{Bias Detection}
 
-This section introduces Related Work. 
+The existing work in this field largely centers around how to deal with bias detection, but a few other related pieces of work consist of text summarization and the application of this technology. Bias detectors are focused on how to analyze media for semantic information, obfuscation, and omittance of details that could cause consumers to take away a certain message on a topic.
+
+A recent paper on bias detection, Automatic Large-Scale Political Bias Detection of News Outlets (Ronnback et al. 2025), focused on using machine learning for source-level political bias meaning it would classify outlets' biases but not the article-level. This is important to our work as it helps us understand methods in being able to classify outlets and use that information as consideration during bias classification at the article-level. However, since it does not analyze articles as their own, it misses nuances where some articles could be more neutral and not follow the typical article in an outlet.
+
+There has been work with bias detection at the article-level, such as this work, In Plain Sight: Media Bias Through the Lens of Factual Reporting (Fan et al. 2019). This paper trained a model using the BASIL dataset, which consisted of spans in the news. The work was important as it was an early attempt at using a large dataset that highlights bias spans within an article, not relying only on outlet-level tags. There were limitations in this work though, such as the dataset used only applied to U.S. events and was relatively small. Our work will extend this project's work of a finer-grained bias detector.
+
+Applications of these technologies are important to understand as they help us develop a targeted system in the way that users interact with it. There is a popular website, Ground News, developed to provide an application for people to understand and trust the news they are consuming. However, this work doesn't support a static bias rating at a publication level, nor does it give the ability for a user to have an article summary.
+
+\subsection{SHAP}
+
+The related works in this field largely center around ...................
+
+A paper on BERT meets Shapley: Extending SHAP Explanations to Transformer-based Classifiers (Kokalj et al. 2021) focuses on how to make shap work with bert to detail how certain words influence the prediction. This work is important as it provides a validated method for generating faithful SHAP explanations for fine-tuned BERT-based classifiers. This forms the basis for our work of explaining how our model predicts the political leaning of an article. There are limitations in that shap relies on masking heuristics that may not perfectly match how bert is processing the data. This meant our work had to ........... to work around these limitations.
+
+The paper Words are Malleable: Computing Semantic Shifts in Political and Media Discourse (Azarbonyad et. al 2017) focuses on the other side of our explainability goals. Just showing that the use of a certain word caused bert to predict that the article leaned left/right politically isn’t enough, we also need to have the user agree with the model’s determination that a given word is biased towards a specific party. This paper helps establish that certain words are associated with a specific political group and that there’s a way to measure that computationally. There are limitations though as the paper focuses on average difference in word choice; it can’t account for the contextual nuance behind certain word choices.
 
 \section{System Design}
 
-This section introduces system design. Add pic here
+This section describes the architecture of the News Bias system, which takes a news article’s URL as input and returns (1) a three-way political bias prediction of left, right, or center, and (2) a concise, neutral summary of the article. The system consists of four main components: the qBias dataset, a fine-tuned BERT-based bias detector, an LLM summarizer, and a FastAPI-based backend that exposes the functionality through a web API and user interface.
 
-\begin{figure}[t]
-  \centering
-  % either of these works:
-  \includegraphics[width=0.9\linewidth]{figures/example.png}
-  \caption{Overview of the system architecture used for bias detection and summarization.}
-  \label{fig:system-arch}
-\end{figure}
+\subsection{qBias Dataset}
 
+The qBias dataset consists of political news articles with corresponding ideological bias annotations such as left, center, and right. Each sample consists of a full-length article, headline text, and a categorical bias label determined by the outlet’s known political alignment and cross-referenced with aggregated media-bias rating sources. The raw CSV is loaded as a Hugging Face datasets object, and the bias\_rating column is renamed to label for compatibility with the Transformers training pipeline.
 
-\subsection{qBias Dataset} 
+Articles were collected from a diverse range of publishers to reduce single-source bias and ensure coverage across the political spectrum. Entries with missing or empty article text were removed, and each textual label (“left”, “center”, “right”) was mapped to an integer (0, 1, 2), forming a classification problem aligned with the target label space of the model. The article text is tokenized using the BERT tokenizer with padding and truncation to a fixed maximum length, producing token IDs and attention masks suitable for transformer-based training.
 
-Explain Bias Detector
+This dataset serves as the training foundation for the bias classification model, enabling the system to learn semantic patterns associated with political framing.
 
+\subsection{Bias Detector}
 
-\subsection{Bias Detector} 
+The bias detection was built using a fine-tuned pretrained version of PoliticalBiasBERT, a transformer-based model derived from BERT and specialized for political ideology classification. The model was fine-tuned using the qBias dataset, and training and evaluation pipeline was implemented using the Hugging Face Transformers framework.
 
-Explain Bias Detector
+At inference time, the classifier receives the concatenated headline and article text. Inputs are tokenized to a maximum length of 512 tokens and passed through the fine-tuned model to obtain raw logits. To improve probability calibration, optional temperature scaling is applied prior to softmax normalization. The final output comprises a predicted class label and a confidence score derived from the maximum normalized probability.
 
+The system supports two explanation modes. In the full explainability configuration, token-level attribution is computed using SHAP, allowing estimation of per-token contributions to the final classification token. Contiguous tokens with similar attribution values are merged into interpretable spans. When SHAP is disabled, a lightweight keyword-based heuristic is employed to highlight politically salient language for user interpretability without affecting model predictions. This architecture cleanly separates interpretability logic from classification to preserve performance integrity.
 
-\subsection{LLM Summarizer} 
+\subsection{LLM Summarizer}
 
-Explain LLM Summarizer
+Article summarization is performed using the OpenAI GPT API, which performs abstractive summarization over news content. After the content is extracted, the article's text is passed to the LLM with a structured prompt instructing the model to produce a neutral, factual summary independent of political framing. The summarizer is intentionally decoupled from the bias classification model to prevent ideological inference from influencing summary generation. This separation ensures that classification reflects source framing, while summaries remain objective.
 
+The LLM output undergoes basic post-processing including sentence trimming and token-length enforcement before being returned to the user. This component enhances usability by allowing users to quickly understand article content alongside a bias assessment.
 
-\subsection{News Bias API and UI}  
+\subsection{News Bias API and UI}
 
-Explain the News Bias work
+The system is deployed as a web application composed of a RESTful API and a single-page frontend interface. The user interface is implemented as a React-based application defined in App.tsx, with global application state managed using React hooks. The frontend communicates with the backend through HTTP requests to a FastAPI service hosted locally and configured through a fixed API endpoint. Users interact with the application by submitting a news article URL, which is then transmitted to the backend for content extraction, bias classification, and summarization.
 
+The interface supports two modes: standard classification or explainable classification. In standard mode, users invoke the /predict\_url endpoint and receive a political bias prediction and article summary. For explainable classification, the user is returned both predicted political bias and summary but also received SHAP-based rationale spans when invoking /predict\_url\_shap. Results are presented both as a formatted summary and as a raw JSON response containing predicted labels, class probabilities, rationale spans, and outlet-level priors.
 
 \section{Evaluation}
 
-This section is the evaluation.
-
+Breaking News was evaluated to ensure users had maximum trust in the system. To do this, we applied explainability techniques to communicate with the user, why articles were being labeled the way they were.
 
 \subsection{Midterm}
 
-This section is midterm evaluation.
+During the midterm, we did not thoroughly evaluate any aspect of our system. Instead, the goal we had when looking at it was answering the following questions: Does Breaking News return useful information? Does it make sense? To do this, we gathered a couple dozen articles online and ran them through the bias detector. Once that happened, we were able to compare our thoughts on the article to the spans it used and the labeled justifications it used.
 
+One other method we used for this evaluation was using our summarizer (which is a separate module to the bias detector), to have it return a summarization and take on the article, which also helped us cross-validate these approaches, to make sure that the bias detector was agreeing with the summarizer.
+
+This method was not extensive and had problems with our own bias, as it’s difficult to evaluate the leanings of an article from an objective point of view. That was why we proposed for the final focus on evaluating the bias detector and Breaking News agent with a focus on explainability.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{MidtermArchitecture.jpg}
+    \caption{Architecture for the Midterm}
+    \label{fig:midterm-arch}
+\end{figure}
 
 \subsection{Final}
 
-This section is final Evaluation.
+The final is where we spent most of our time tackling evaluating the Breaking News agent. It is important that users trust the Breaking News agent, especially since our mission is to build a tool for people to use to understand the messages articles are attempting to push. To add to this trust, the evaluation metric we focused on is Explainability. Articles will be able to give a bias detection, but the addition of an explainability module allows users to have confidence in the decision because it can see which words flagged for bias and how it affected the weighting.
 
+From a user perspective, when they log into the website, they are presented with an interface to give a URL and an option for “Classify w/ SHAP”. After the user chooses this option with their choice of article, it will take a few moments and then return results in a JSON format. This format will show if it has positive or negative value, which words in the span had the most impact, and then finish off with an evaluation of right-leaning or left-leaning. One way to improve this system is to map red/blue colors to the span words and then in the article highlight the words with that color/intensity to make it easier for users to see which words in the article were the culprit in determining political leaning.
+
+From a backend perspective, the backend uses SHAP to mine explainability details of the spans. The spans are fed through a SHAP module that goes through each span identified by the bias detector and returns the values associated with it. This includes a SHAP value, a normalized score, and a sign to show if it’s left-leaning or right-leaning. These scores give an idea of how much each span impacted the bias detector’s evaluation if an article is right leaning or left leaning. We also attempted to use LIME, which would create a more robust explainability module that would run separately to SHAP and evaluate the spans on perturbations, but as we will discuss in a moment, there were some challenges we faced along the way.
+
+Our biggest challenge to implementing these explainability metrics is the increase in runtime. A user wants to be able to interact with an app with a simple click and have it return the requested information in a timely manner; however, this was difficult to do. SHAP values were not as much of an issue, but instead of taking less than 5 seconds to return an evaluation, it would take ~60-90 seconds to return an explainability score for the user. This is because each word in the SPAN was sequentially evaluated for a SHAP score and slowed down. However, LIME was the biggest challenge; the module was implemented. However, the time used to run LIME took greater than 30 minutes, which was too long for a reasonable use-case of the system. This is believed to happen because each item in the span is perturbated and then sequentially ran, which requires time and compute resources we did not have.
+
+One way we attempted to resolve this however, was using a suggestion to use parallelism while evaluating the scores, where instead of sequentially running each span word through SHAP or LIME, we would instead run these in parallel, and have the values returned. This would speed up the time for a result and improve the usability as users would not have to wait periods of time while waiting for values to return.
+
+The evaluation process was difficult but with the use of SHAP and the bias detector, users are now able to have more insight into how the model evaluates the articles, which makes it less of a black-box.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{FinalArchitecture.jpg}
+    \caption{Architecture for the Final}
+    \label{fig:final-arch}
+\end{figure}
 
 \section{Conclusion}
 
-This section is the conclusion
+Determining political bias in news articles and figuring out a more holistic take on the argument is becoming increasingly difficult as the sheer number of articles and the increasing political divide make it harder to find a singular source of truth. But by developing an LLM that provides users with a bias scoring on articles and a summary of what’s contained in said articles, we make it easier to pick which articles get read. This work helps to fill gaps in previous studies that tended to focus either on the bias that the news outlet held rather than bias found in individual articles. By also including the shap values used in the llm we hope to foster trust in the results we provide. Being able to see the weight behind each word helps prove that bias is detected based off the wording chosen by the journalist, not assumptions based on where the article is coming from.
 
+\section*{Acknowledgments}
 
-\section{Acknowledgment}
+The authors acknowledge the following contributions:
 
-\begin{itemize}
-  \item \textbf{Daniel Leniz} (\textit{XX\%}) – Evaluation on Daniel
-  \item \textbf{Louis-Marie Modesir} (\textit{XX\%}) – Evaluation on Louis
-  \item \textbf{Robert Malloy} (\textit{XX\%}) – Evaluation on Robert
-\end{itemize}
+Daniel Leniz (34\%) – Daniel completed the API development for the midterm project by setting up the GitHub repository and creating the endpoints needed to connect the bias predictor with the frontend, while also writing documentation to set this application up locally. He wrote the System Design portion and part of the Related Works for the essay.
 
-\bibliographystyle{plainnat}
-\bibliography{references}
+Louis-Marie Mondesir (33\%) – Louis did the Fine Tuning of our model for the midterm project by integrating the qBias dataset into the midterm to help with fine tuning of the political bias BERT model, wrote the Abstract, Intro, and Conclusion for the Essay alongside part of the Related Works, and helped test and bugfix the code for the final.
+
+Robert Malloy (33\%) – Robert worked on the user interface and helped make the bias predictor more robust for the midterm project. For the final portion Robert worked with developing the developing the SHAP analysis and attempted to integrate LIME in there. Lastly, worked on revising to include a parallelized approach to improve the latency seen in the UI when analyzing articles. For the essay, set up the NEURIPS document and wrote out explanations of the Final section and worked on a portion of Related works.
+
+\newpage
+\section*{References}
+
+Kokalj, E., Škrlj, B., Lavrač, N., \& Pollak, S. (2021). BERT meets Shapley: Extending SHAP explanations to transformer-based classifiers. Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP).
+
+Azarbonyad, H., Dehghani, M., Beelen, K., Arkut, A., \& Marx, M. (2017). Words are malleable: Computing semantic shifts in political and media discourse. Proceedings of the International Conference on Computer Analysis of Images and Patterns (CAIP).
+
+Rönnback, L., Öhman, E., \& Sahlgren, M. (2025). Automatic large-scale political bias detection of news outlets. Journal of Artificial Intelligence Research.
+
+Fan, L., Yang, F., Pedersen, T., \& Dredze, M. (2019). In plain sight: Media bias through the lens of factual reporting. Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP).
 
 \end{document}
